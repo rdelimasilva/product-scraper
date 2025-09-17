@@ -33,10 +33,42 @@ async function save5Products() {
 
     console.log('✅ Página carregada\n');
 
+    // Aguardar um pouco para garantir que tudo carregou
+    await page.waitForTimeout(3000);
+
+    // Debug: verificar que seletores existem
+    const debugInfo = await page.evaluate(() => {
+      const selectors = [
+        '.col-md-4.col-sm-6.detail-product',
+        '.detail-product',
+        '.product-item',
+        '.card',
+        '[class*="product"]'
+      ];
+
+      const results = {};
+      selectors.forEach(sel => {
+        results[sel] = document.querySelectorAll(sel).length;
+      });
+
+      return results;
+    });
+
+    console.log('🔍 Debug - Elementos encontrados:', debugInfo);
+
     // Extrair 5 produtos da página
     const products = await page.evaluate(() => {
       const items = [];
-      const elements = document.querySelectorAll('.col-md-4.col-sm-6.detail-product');
+      // Tentar múltiplos seletores
+      let elements = document.querySelectorAll('.col-md-4.col-sm-6.detail-product');
+
+      if (elements.length === 0) {
+        elements = document.querySelectorAll('.detail-product');
+      }
+
+      if (elements.length === 0) {
+        elements = document.querySelectorAll('[class*="product"]');
+      }
 
       for (let i = 0; i < Math.min(5, elements.length); i++) {
         const el = elements[i];
