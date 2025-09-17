@@ -3,7 +3,8 @@ import puppeteer from 'puppeteer';
 async function analyzeProductGrid() {
   const browser = await puppeteer.launch({
     headless: false,
-    defaultViewport: null
+    defaultViewport: null,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();

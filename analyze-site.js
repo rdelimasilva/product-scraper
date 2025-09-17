@@ -6,7 +6,8 @@ dotenv.config();
 async function analyzeSite() {
   const browser = await puppeteer.launch({
     headless: false,
-    defaultViewport: null
+    defaultViewport: null,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();
