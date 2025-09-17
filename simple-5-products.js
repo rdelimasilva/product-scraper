@@ -17,7 +17,7 @@ async function save5Products() {
     console.log('════════════════════════════════════════════════\n');
 
     browser = await puppeteer.launch({
-      headless: false,
+      headless: 'new',
       defaultViewport: null,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
