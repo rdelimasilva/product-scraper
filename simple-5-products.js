@@ -36,6 +36,38 @@ async function save5Products() {
     // Aguardar um pouco para garantir que tudo carregou
     await new Promise(resolve => setTimeout(resolve, 3000));
 
+    // Aplicar filtros para ver produtos
+    console.log('🔧 Aplicando filtros...');
+
+    try {
+      // Clicar em "Móveis por:"
+      const moveisPoButton = await page.$x("//a[contains(text(), 'Móveis por:')]");
+      if (moveisPoButton.length > 0) {
+        await moveisPoButton[0].click();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('✅ Clicou em "Móveis por:"');
+      }
+
+      // Clicar em "Tipo"
+      const tipoButton = await page.$x("//a[contains(text(), 'Tipo')]");
+      if (tipoButton.length > 0) {
+        await tipoButton[0].click();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('✅ Clicou em "Tipo"');
+      }
+
+      // Clicar no primeiro filtro disponível (ex: Poltronas)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const firstFilter = await page.$('.filter-option input[type="checkbox"]');
+      if (firstFilter) {
+        await firstFilter.click();
+        console.log('✅ Selecionou o primeiro filtro');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    } catch (e) {
+      console.log('⚠️ Não conseguiu aplicar filtros:', e.message);
+    }
+
     // Debug: verificar que seletores existem
     const debugInfo = await page.evaluate(() => {
       const selectors = [
