@@ -34,7 +34,7 @@ async function save5Products() {
     console.log('✅ Página carregada\n');
 
     // Aguardar um pouco para garantir que tudo carregou
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Debug: verificar que seletores existem
     const debugInfo = await page.evaluate(() => {
