@@ -53,16 +53,32 @@ async function scrapeWithSubcategories() {
         // Passo 1: Clicar no filtro principal (ex: "Móveis por:")
         console.log(`🔍 Procurando filtro "${category.filterName}"...`);
 
-        const filterButton = await page.$x(`//a[contains(text(), '${category.filterName}')]`);
-        if (filterButton.length > 0) {
-          await filterButton[0].click();
+        const filterClicked = await page.evaluate((filterText) => {
+          const links = Array.from(document.querySelectorAll('a'));
+          const filterLink = links.find(a => a.textContent.includes(filterText));
+          if (filterLink) {
+            filterLink.click();
+            return true;
+          }
+          return false;
+        }, category.filterName);
+
+        if (filterClicked) {
           console.log('✅ Clicou no filtro principal');
           await new Promise(resolve => setTimeout(resolve, 2000));
 
           // Passo 2: Clicar em "Tipo"
-          const tipoButton = await page.$x("//a[contains(text(), 'Tipo')]");
-          if (tipoButton.length > 0) {
-            await tipoButton[0].click();
+          const tipoClicked = await page.evaluate(() => {
+            const links = Array.from(document.querySelectorAll('a'));
+            const tipoLink = links.find(a => a.textContent.includes('Tipo'));
+            if (tipoLink) {
+              tipoLink.click();
+              return true;
+            }
+            return false;
+          });
+
+          if (tipoClicked) {
             console.log('✅ Clicou em "Tipo"');
             await new Promise(resolve => setTimeout(resolve, 3000));
 
