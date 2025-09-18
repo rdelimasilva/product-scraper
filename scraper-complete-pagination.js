@@ -22,24 +22,48 @@ const SUBCATEGORY_MAPPINGS = {
       'Sofás': ['sofá', 'sofa', 'couch'],
       'Banquetas': ['banqueta', 'banquete', 'stool'],
       'Bancos': ['banco', 'bench'],
-      'Estantes': ['estante', 'bookshelf', 'prateleira', 'shelf'],
+      'Estantes': ['estante', 'bookshelf', 'prateleira'],
       'Aparadores': ['aparador', 'sideboard', 'buffet'],
       'Camas': ['cama', 'bed'],
-      'Armários': ['armário', 'armario', 'closet', 'guarda-roupa', 'wardrobe']
+      'Armários': ['armário', 'armario', 'closet', 'guarda-roupa']
     }
   },
   'Iluminação': {
     keywords: {
       'Pendentes': ['pendente', 'pendant'],
-      'Luminárias de Mesa': ['luminária de mesa', 'luminaria de mesa', 'abajur', 'table lamp'],
-      'Luminárias de Piso': ['luminária de piso', 'luminaria de piso', 'floor lamp'],
-      'Arandelas': ['arandela', 'wall lamp', 'wall light'],
+      'Luminárias de Mesa': ['luminária de mesa', 'abajur', 'table lamp'],
+      'Luminárias de Piso': ['luminária de piso', 'floor lamp'],
+      'Arandelas': ['arandela', 'wall'],
       'Plafons': ['plafon', 'ceiling'],
       'Lustres': ['lustre', 'chandelier'],
-      'Spots': ['spot', 'spotlight'],
-      'Fitas LED': ['fita', 'led strip', 'strip'],
-      'Postes': ['poste', 'pole light'],
-      'Refletores': ['refletor', 'reflector', 'flood']
+      'Spots': ['spot', 'spotlight']
+    }
+  },
+  'Acessórios de Decoração': {
+    keywords: {
+      'Vasos': ['vaso', 'vase'],
+      'Quadros': ['quadro', 'picture', 'frame'],
+      'Esculturas': ['escultura', 'sculpture'],
+      'Espelhos': ['espelho', 'mirror'],
+      'Almofadas': ['almofada', 'pillow', 'cushion'],
+      'Objetos': ['objeto', 'decor']
+    }
+  },
+  'Louças e Metais': {
+    keywords: {
+      'Torneiras': ['torneira', 'tap', 'faucet'],
+      'Cubas': ['cuba', 'sink', 'bowl'],
+      'Metais': ['metal', 'registro', 'válvula'],
+      'Louças': ['louça', 'vaso sanitário', 'bacia']
+    }
+  },
+  'Eletros': {
+    keywords: {
+      'Geladeiras': ['geladeira', 'refrigerador', 'fridge'],
+      'Fogões': ['fogão', 'stove', 'cooktop'],
+      'Micro-ondas': ['microondas', 'micro-ondas', 'microwave'],
+      'Lava-louças': ['lava', 'dishwasher'],
+      'Coifas': ['coifa', 'hood']
     }
   }
 };
@@ -350,8 +374,17 @@ async function scrapeAllCategories() {
   const categories = [
     { name: 'Móveis', url: 'https://casoca.com.br/moveis.html' },
     { name: 'Iluminação', url: 'https://casoca.com.br/iluminacao.html' },
-    { name: 'Decoração', url: 'https://casoca.com.br/decoracao.html' },
-    { name: 'Mesa Posta', url: 'https://casoca.com.br/mesa-posta.html' }
+    { name: 'Acessórios de Decoração', url: 'https://casoca.com.br/acessorios-de-decoracao.html' },
+    { name: 'Louças e Metais', url: 'https://casoca.com.br/loucas-e-metais.html' },
+    { name: 'Eletros', url: 'https://casoca.com.br/eletros.html' },
+    { name: 'Portas e Janelas', url: 'https://casoca.com.br/portas-e-janelas.html' },
+    { name: 'Escritório', url: 'https://casoca.com.br/escritorio.html' },
+    { name: 'Quarto Infantil', url: 'https://casoca.com.br/quarto-infantil.html' },
+    { name: 'Móveis para Área Externa', url: 'https://casoca.com.br/moveis/moveis-para-area-externa.html' },
+    { name: 'Cortinas e Persianas', url: 'https://casoca.com.br/acessorios-de-decoracao/cortinas-e-persianas.html' },
+    { name: 'Vegetação', url: 'https://casoca.com.br/vegetacao.html' },
+    { name: 'Papéis de Parede', url: 'https://casoca.com.br/revestimentos/revestimentos-de-parede/papeis-de-parede.html' },
+    { name: 'Tapetes', url: 'https://casoca.com.br/acessorios-de-decoracao/tapetes.html' }
   ];
 
   let grandTotalProducts = 0;
