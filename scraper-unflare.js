@@ -22,7 +22,7 @@ const supabase = createClient(
 // Configurações
 const CONFIG = {
   USE_PROXY: false, // Mudar para true quando tiver proxies
-  HEADLESS: false,  // Começar com false para ver o que acontece
+  HEADLESS: 'new',  // Use 'new' for production server
   MAX_PAGES_PER_CATEGORY: 500,
   CONCURRENT_BROWSERS: 1, // Começar com 1
   WAIT_BETWEEN_PAGES: 3000,
@@ -422,7 +422,7 @@ async function main() {
   log('════════════════════════════════');
   log('Configurações:');
   log(`  • Proxy: ${CONFIG.USE_PROXY ? 'Ativado' : 'Desativado'}`);
-  log(`  • Headless: ${CONFIG.HEADLESS ? 'Sim' : 'Não'}`);
+  log(`  • Headless: ${CONFIG.HEADLESS}`);
   log(`  • Max páginas: ${CONFIG.MAX_PAGES_PER_CATEGORY}`);
   log('');
   
