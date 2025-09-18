@@ -85,16 +85,65 @@ function inferSubcategory(productName, category) {
   return 'Outros';
 }
 
-async function fetchWithScraperAPI(url) {
+async function fetchWithScraperAPI(url, retries = 5) {
   const apiUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true&country_code=br`;
 
-  const response = await fetch(apiUrl);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`    🌐 Tentativa ${attempt}/${retries}`);
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 90000); // 90 segundos timeout
+
+      const response = await fetch(apiUrl, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        // Se for 401 (não autorizado), verificar API key
+        if (response.status === 401) {
+          console.error(`    ❌ API Key inválida ou expirada`);
+          // Continuar tentando com próximas páginas
+          return '';
+        }
+        // Se for 429 (rate limit), aguardar mais tempo
+        if (response.status === 429) {
+          console.log(`    ⏳ Rate limit atingido, aguardando 3 minutos...`);
+          await new Promise(resolve => setTimeout(resolve, 180000)); // 3 minutos
+          continue;
+        }
+        // Se for 500+ (erro servidor), tentar novamente
+        if (response.status >= 500) {
+          console.log(`    ⚠️ Erro no servidor (${response.status}), tentando novamente...`);
+          await new Promise(resolve => setTimeout(resolve, 60000)); // 1 minuto
+          continue;
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const html = await response.text();
+      console.log(`    ✅ HTML recebido (${html.length} caracteres)`);
+      return html;
+
+    } catch (error) {
+      console.error(`    ⚠️ Erro na tentativa ${attempt}: ${error.message}`);
+
+      // Se for a última tentativa, retornar HTML vazio ao invés de parar
+      if (attempt === retries) {
+        console.error(`    ❌ Todas as ${retries} tentativas falharam para: ${url}`);
+        console.log(`    ⏭️ Continuando com próxima página...`);
+        return ''; // Retorna HTML vazio para continuar o processo
+      }
+
+      // Aguardar 2 minutos antes de tentar novamente
+      console.log(`    ⏳ Aguardando 2 minutos antes da tentativa ${attempt + 1}...`);
+      await new Promise(resolve => setTimeout(resolve, 120000)); // 2 minutos
+    }
   }
 
-  return await response.text();
+  return ''; // Fallback caso todas as tentativas falhem
 }
 
 async function checkProductExists(link) {
@@ -108,41 +157,47 @@ async function checkProductExists(link) {
 }
 
 async function saveOrUpdateProduct(product, skipExisting = false) {
-  // Primeiro verificar se existe
-  const exists = await checkProductExists(product.link);
+  try {
+    // Primeiro verificar se existe
+    const exists = await checkProductExists(product.link);
 
-  if (exists) {
-    if (skipExisting) {
-      // Se configurado para pular existentes, apenas retorna
-      return { updated: false, inserted: false, skipped: true, error: null };
+    if (exists) {
+      if (skipExisting) {
+        // Se configurado para pular existentes, apenas retorna
+        return { updated: false, inserted: false, skipped: true, error: null };
+      }
+
+      // Atualizar produto existente
+      const { data, error } = await supabase
+        .from('products')
+        .update({
+          name: product.name,
+          image_url: product.image_url,
+          category: product.category,
+          subcategory: product.subcategory,
+          updated_at: new Date().toISOString()
+        })
+        .eq('link', product.link);
+
+      return { updated: !error, inserted: false, skipped: false, error };
+    } else {
+      // Inserir novo produto
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          name: product.name,
+          image_url: product.image_url,
+          link: product.link,
+          category: product.category,
+          subcategory: product.subcategory
+        });
+
+      return { updated: false, inserted: !error, error };
     }
-
-    // Atualizar produto existente
-    const { data, error } = await supabase
-      .from('products')
-      .update({
-        name: product.name,
-        image_url: product.image_url,
-        category: product.category,
-        subcategory: product.subcategory,
-        updated_at: new Date().toISOString()
-      })
-      .eq('link', product.link);
-
-    return { updated: !error, inserted: false, skipped: false, error };
-  } else {
-    // Inserir novo produto
-    const { data, error } = await supabase
-      .from('products')
-      .insert({
-        name: product.name,
-        image_url: product.image_url,
-        link: product.link,
-        category: product.category,
-        subcategory: product.subcategory
-      });
-
-    return { updated: false, inserted: !error, error };
+  } catch (err) {
+    // Se houver erro ao salvar, apenas logar e continuar
+    console.log(`    ⚠️ Erro ao salvar produto: ${err.message}`);
+    return { updated: false, inserted: false, error: err };
   }
 }
 
@@ -151,6 +206,13 @@ async function scrapePage(url, category) {
 
   try {
     const html = await fetchWithScraperAPI(url);
+
+    // Se não conseguiu obter HTML (erro na API), retornar vazio mas continuar
+    if (!html || html.length === 0) {
+      console.log(`    ⚠️ Página vazia ou erro na API, continuando...`);
+      return { products: [], nextPageUrl: null, totalPages: 1 };
+    }
+
     const $ = cheerio.load(html);
 
     const products = [];
