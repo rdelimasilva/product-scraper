@@ -83,11 +83,16 @@ async function checkProductExists(link) {
   return !!data;
 }
 
-async function saveOrUpdateProduct(product) {
+async function saveOrUpdateProduct(product, skipExisting = false) {
   // Primeiro verificar se existe
   const exists = await checkProductExists(product.link);
 
   if (exists) {
+    if (skipExisting) {
+      // Se configurado para pular existentes, apenas retorna
+      return { updated: false, inserted: false, skipped: true, error: null };
+    }
+
     // Atualizar produto existente
     const { data, error } = await supabase
       .from('products')
@@ -100,7 +105,7 @@ async function saveOrUpdateProduct(product) {
       })
       .eq('link', product.link);
 
-    return { updated: !error, inserted: false, error };
+    return { updated: !error, inserted: false, skipped: false, error };
   } else {
     // Inserir novo produto
     const { data, error } = await supabase
@@ -200,7 +205,7 @@ async function scrapePage(url, category) {
   }
 }
 
-async function scrapeCategory(category, maxPages = 10) {
+async function scrapeCategory(category, maxPages = 500) { // Aumentado para 500 páginas
   console.log(`\n📁 CATEGORIA: ${category.name}`);
   console.log('════════════════════════════════════\n');
 
@@ -210,6 +215,7 @@ async function scrapeCategory(category, maxPages = 10) {
   let totalInserted = 0;
   let totalUpdated = 0;
   let totalErrors = 0;
+  let consecutiveEmptyPages = 0; // Contador de páginas vazias consecutivas
   const subcategoriesCount = {};
 
   while (currentUrl && pageNumber <= maxPages) {
@@ -220,8 +226,16 @@ async function scrapeCategory(category, maxPages = 10) {
     console.log(`    ✅ ${products.length} produtos encontrados`);
 
     if (products.length === 0) {
-      console.log('    ⚠️ Nenhum produto encontrado, finalizando categoria');
-      break;
+      consecutiveEmptyPages++;
+      console.log(`    ⚠️ Página vazia (${consecutiveEmptyPages} consecutivas)`);
+
+      // Se encontrar 3 páginas vazias consecutivas, parar
+      if (consecutiveEmptyPages >= 3) {
+        console.log('    🛑 3 páginas vazias consecutivas, finalizando categoria');
+        break;
+      }
+    } else {
+      consecutiveEmptyPages = 0; // Reset contador se encontrar produtos
     }
 
     // Salvar produtos
@@ -256,14 +270,20 @@ async function scrapeCategory(category, maxPages = 10) {
 
     console.log(`    💾 Novos: ${totalInserted}, Atualizados: ${totalUpdated}, Erros: ${totalErrors}`);
 
+    // Mostrar progresso a cada 10 páginas
+    if (pageNumber % 10 === 0) {
+      console.log(`\n  📊 Progresso: ${pageNumber} páginas processadas, ${totalProducts} produtos no total\n`);
+    }
+
     // Verificar próxima página
     if (nextPageUrl && currentUrl !== nextPageUrl) {
       currentUrl = nextPageUrl;
       pageNumber++;
 
-      // Aguardar entre páginas para não sobrecarregar
-      console.log(`    ⏳ Aguardando 2 segundos antes da próxima página...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Aguardar entre páginas (menos tempo se tiver muitas páginas)
+      const waitTime = pageNumber > 50 ? 1000 : 2000; // 1 segundo após 50 páginas
+      console.log(`    ⏳ Aguardando ${waitTime/1000}s antes da próxima página...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     } else {
       // Tentar construir URL da próxima página manualmente
       if (pageNumber === 1 && products.length > 0) {
@@ -321,10 +341,11 @@ async function scrapeAllCategories() {
   console.log('🚀 SCRAPER COMPLETO COM PAGINAÇÃO - CASOCA\n');
   console.log('════════════════════════════════════════════\n');
   console.log('📋 Configurações:');
-  console.log('   • Scraper API com paginação');
+  console.log('   • Scraper API com paginação completa');
   console.log('   • Verificação de duplicados');
   console.log('   • Subcategorias por inferência');
-  console.log('   • Máximo 10 páginas por categoria\n');
+  console.log('   • Até 500 páginas por categoria');
+  console.log('   • Para automaticamente após 3 páginas vazias\n');
 
   const categories = [
     { name: 'Móveis', url: 'https://casoca.com.br/moveis.html' },
@@ -340,7 +361,7 @@ async function scrapeAllCategories() {
 
   for (const category of categories) {
     try {
-      const result = await scrapeCategory(category, 10); // Máximo 10 páginas por categoria
+      const result = await scrapeCategory(category, 500); // Até 500 páginas por categoria
 
       grandTotalProducts += result.totalProducts;
       grandTotalInserted += result.totalInserted;
