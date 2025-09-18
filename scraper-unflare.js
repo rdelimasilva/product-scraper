@@ -173,7 +173,7 @@ async function bypassCloudflare(page, url) {
       log('⏳ Cloudflare detectado, aguardando...');
       
       // Aguardar o Cloudflare resolver
-      await new Promise(resolve => setTimeout(resolve,CONFIG.CLOUDFLARE_WAIT);
+      await new Promise(resolve => setTimeout(resolve, CONFIG.CLOUDFLARE_WAIT));
       
       // Tentar aguardar navegação
       try {
@@ -200,7 +200,7 @@ async function bypassCloudflare(page, url) {
         return true;
       } else {
         log('⚠️ Cloudflare ainda presente, tentando aguardar mais...');
-        await new Promise(resolve => setTimeout(resolve,10000);
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
     } else {
       log('✅ Página carregada sem Cloudflare');
@@ -367,7 +367,7 @@ async function scrapeCategory(category) {
             waitUntil: 'networkidle2',
             timeout: 30000 
           });
-          await new Promise(resolve => setTimeout(resolve,2000);
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (err) {
           log(`  ⚠️ Erro ao navegar: ${err.message}`);
           consecutiveEmpty++;
@@ -404,7 +404,7 @@ async function scrapeCategory(category) {
       }
       
       // Aguardar entre páginas
-      await new Promise(resolve => setTimeout(resolve,CONFIG.WAIT_BETWEEN_PAGES + Math.random() * 2000);
+      await new Promise(resolve => setTimeout(resolve, CONFIG.WAIT_BETWEEN_PAGES + Math.random() * 2000));
     }
     
   } catch (error) {
