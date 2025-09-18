@@ -89,15 +89,9 @@ async function scrapeCasoca() {
 
             if (name && name !== '') {
               items.push({
-                name: name.substring(0, 100), // Limitar tamanho
-                category: categoryName,
+                name: name.substring(0, 200),
                 image_url: imageUrl,
-                product_url: link,
-                price: price,
-                description: name, // Usando nome como descrição por enquanto
-                brand: 'CASOCA',
-                in_stock: true,
-                scraped_at: new Date().toISOString()
+                product_url: link || `https://casoca.com.br/produto/${Date.now()}`
               });
             }
           } catch (error) {
@@ -119,9 +113,9 @@ async function scrapeCasoca() {
             const { data, error } = await supabase
               .from('products')
               .upsert({
-                ...product,
-                product_url: product.product_url || `https://casoca.com.br/produto-${Date.now()}`,
-                updated_at: new Date().toISOString()
+                name: product.name,
+                image_url: product.image_url,
+                product_url: product.product_url
               }, {
                 onConflict: 'product_url'
               });
