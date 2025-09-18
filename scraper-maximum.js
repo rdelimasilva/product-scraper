@@ -149,34 +149,68 @@ async function extractProducts(html, category) {
 
 async function saveProductsBatch(products) {
   const results = { saved: 0, errors: 0 };
-  
+
   for (const product of products) {
     try {
-      const { error } = await supabase
+      // Primeiro verificar se existe
+      const { data: existing } = await supabase
         .from('products')
-        .upsert({
-          name: product.name,
-          image_url: product.image_url,
-          link: product.link,
-          category: product.category,
-          subcategory: product.subcategory
-        }, {
-          onConflict: 'link'
-        });
+        .select('id')
+        .eq('link', product.link)
+        .single();
 
-      if (!error) {
-        results.saved++;
-        stats.totalSaved++;
+      if (existing) {
+        // UPDATE
+        const { error } = await supabase
+          .from('products')
+          .update({
+            name: product.name,
+            image_url: product.image_url,
+            category: product.category,
+            subcategory: product.subcategory,
+            updated_at: new Date().toISOString()
+          })
+          .eq('link', product.link);
+
+        if (!error) {
+          results.saved++;
+          stats.totalSaved++;
+        } else {
+          log(`  ⚠️ Erro UPDATE: ${error.message}`);
+          results.errors++;
+          stats.totalErrors++;
+        }
       } else {
-        results.errors++;
-        stats.totalErrors++;
+        // INSERT
+        const { error } = await supabase
+          .from('products')
+          .insert({
+            name: product.name,
+            image_url: product.image_url,
+            link: product.link,
+            category: product.category,
+            subcategory: product.subcategory
+          });
+
+        if (!error) {
+          results.saved++;
+          stats.totalSaved++;
+        } else if (error.code === '23505') {
+          // Duplicado - ignorar
+          log(`  ℹ️ Produto já existe: ${product.name}`);
+        } else {
+          log(`  ⚠️ Erro INSERT: ${error.message}`);
+          results.errors++;
+          stats.totalErrors++;
+        }
       }
     } catch (err) {
+      log(`  ⚠️ Erro ao salvar: ${err.message}`);
       results.errors++;
       stats.totalErrors++;
     }
   }
-  
+
   return results;
 }
 
