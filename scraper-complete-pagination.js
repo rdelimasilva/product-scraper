@@ -430,31 +430,28 @@ async function scrapeCategory(category, maxPages = 500) { // Aumentado para 500 
       await new Promise(resolve => setTimeout(resolve, waitTime));
     } else {
       // Tentar construir URL da próxima página manualmente
-      if (pageNumber === 1 && products.length > 0) {
-        // Tentar padrão comum de paginação
+      if (products.length > 0) {
+        // Continuar tentando próximas páginas enquanto houver produtos
         const nextUrl = `${category.url}?p=${pageNumber + 1}`;
         console.log(`    🔍 Tentando página ${pageNumber + 1} com URL construída...`);
 
-        const testResult = await scrapePage(nextUrl, category.name);
-        if (testResult.products.length > 0) {
+        currentUrl = nextUrl;
+        pageNumber++;
+
+        // Aguardar entre páginas
+        const waitTime = pageNumber > 50 ? 1000 : 2000;
+        console.log(`    ⏳ Aguardando ${waitTime/1000}s antes da próxima página...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        // Se não há produtos, verificar se ainda há mais páginas
+        if (consecutiveEmptyPages < 3 && pageNumber < 500) {
+          const nextUrl = `${category.url}?p=${pageNumber + 1}`;
           currentUrl = nextUrl;
           pageNumber++;
-
-          // Processar produtos da página teste
-          for (const product of testResult.products) {
-            const result = await saveOrUpdateProduct(product);
-            if (result.inserted) totalInserted++;
-            else if (result.updated) totalUpdated++;
-            if (result.error) totalErrors++;
-          }
-
-          totalProducts += testResult.products.length;
           await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
           break;
         }
-      } else {
-        break;
       }
     }
   }
