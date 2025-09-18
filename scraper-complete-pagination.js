@@ -156,32 +156,48 @@ async function scrapePage(url, category) {
     const products = [];
     const processedLinks = new Set(); // Para evitar duplicados na mesma página
 
-    // Extrair produtos
-    $('.product').each((index, element) => {
+    // Extrair produtos - usando seletores corretos do site
+    $('.product, .product-container').each((index, element) => {
       const $el = $(element);
 
-      // Extrair nome
-      const name = $el.find('h3').text().trim() ||
-                  $el.find('h4').text().trim() ||
-                  $el.find('.product-name').text().trim() ||
-                  $el.find('a[title]').attr('title') ||
-                  $el.find('a').first().text().trim();
+      // Extrair nome - procurar texto dentro do elemento
+      let name = $el.find('h3').text().trim() ||
+                 $el.find('h4').text().trim() ||
+                 $el.find('.product-name').text().trim() ||
+                 $el.find('a[title]').attr('title') ||
+                 $el.find('.product-info .title').text().trim();
 
-      // Extrair link
-      const link = $el.find('a').first().attr('href') || '';
+      // Se ainda não encontrou, pegar o texto limpo
+      if (!name) {
+        const allText = $el.text().trim();
+        // Pegar primeira linha que não seja vazia
+        const lines = allText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        name = lines[0] || '';
+      }
+
+      // Limpar o nome (remover "Baixar", números extras, etc)
+      name = name.replace(/^Baixar\s*/i, '').trim();
+
+      // Extrair link - procurar link do produto
+      const link = $el.find('a[href*="/produto/"], a[href*=".html"]').first().attr('href') ||
+                  $el.find('a').first().attr('href') || '';
       const fullLink = link ? (link.startsWith('http') ? link : `https://casoca.com.br${link}`) : '';
 
       // Evitar processar o mesmo link múltiplas vezes
-      if (processedLinks.has(fullLink)) {
+      if (processedLinks.has(fullLink) || !fullLink) {
         return;
       }
       processedLinks.add(fullLink);
 
-      // Extrair imagem
+      // Extrair imagem - múltiplas tentativas
       const img = $el.find('img').first();
-      const imageUrl = img.attr('src') || img.attr('data-src') || img.attr('data-lazy-src') || '';
+      const imageUrl = img.attr('src') ||
+                      img.attr('data-src') ||
+                      img.attr('data-lazy-src') ||
+                      img.attr('data-original') || '';
 
-      if (name && name.length > 0 && fullLink) {
+      // Validar que temos dados mínimos
+      if (name && name.length > 0 && name !== 'undefined') {
         const subcategory = inferSubcategory(name, category);
 
         products.push({
