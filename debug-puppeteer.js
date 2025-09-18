@@ -123,21 +123,41 @@ async function debugWithPuppeteer() {
     const products = await page.evaluate(() => {
       const items = [];
 
-      // Procurar por qualquer elemento com imagem e texto
-      document.querySelectorAll('img').forEach(img => {
-        const container = img.closest('li, article, div, a');
-        if (container) {
-          // Procurar texto próximo
-          const possibleTitle = container.querySelector('h1, h2, h3, h4, h5, span, p, a[title]');
-          const link = container.querySelector('a')?.href || container.closest('a')?.href;
+      // Procurar produtos especificamente pela classe .product
+      document.querySelectorAll('.product').forEach(product => {
+        // Procurar título - pode estar em várias formas
+        let title = '';
+        const titleEl = product.querySelector('.product-text strong') ||
+                       product.querySelector('strong') ||
+                       product.querySelector('h3, h4, h5') ||
+                       product.querySelector('.product-name') ||
+                       product.querySelector('a[title]');
 
-          if (possibleTitle) {
-            items.push({
-              title: possibleTitle.textContent?.trim(),
-              image: img.src,
-              link: link
-            });
+        if (titleEl) {
+          title = titleEl.textContent?.trim() || titleEl.getAttribute('title') || '';
+        }
+
+        // Se ainda não tem título, pegar o texto principal
+        if (!title) {
+          const textEl = product.querySelector('.product-text');
+          if (textEl) {
+            title = textEl.textContent?.trim().split('\n')[0];
           }
+        }
+
+        // Imagem
+        const img = product.querySelector('img');
+        const imageUrl = img?.src || img?.dataset?.src || '';
+
+        // Link
+        const link = product.querySelector('a')?.href || '';
+
+        if (title || imageUrl) {
+          items.push({
+            title: title || 'Produto sem nome',
+            image: imageUrl,
+            link: link
+          });
         }
       });
 

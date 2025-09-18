@@ -156,45 +156,56 @@ async function scrapePage(url, category) {
     const products = [];
     const processedLinks = new Set(); // Para evitar duplicados na mesma página
 
-    // Extrair produtos - usando seletores corretos do site
-    $('.product, .product-container').each((index, element) => {
+    // Extrair produtos - estrutura correta: .col-md-4.detail-product > .product-container
+    $('.col-md-4.detail-product').each((index, element) => {
       const $el = $(element);
+      const $container = $el.find('.product-container');
 
-      // Extrair nome - procurar texto dentro do elemento
-      let name = $el.find('h3').text().trim() ||
-                 $el.find('h4').text().trim() ||
-                 $el.find('.product-name').text().trim() ||
-                 $el.find('a[title]').attr('title') ||
-                 $el.find('.product-info .title').text().trim();
-
-      // Se ainda não encontrou, pegar o texto limpo
+      // Nome do produto - está em .info h2
+      let name = '';
+      const $info = $container.find('.info');
+      if ($info.length > 0) {
+        name = $info.find('h2').text().trim() ||
+               $info.find('h3').text().trim() ||
+               $info.text().trim().split('\n')[0];
+      }
+      // Fallback para .product-text
       if (!name) {
-        const allText = $el.text().trim();
-        // Pegar primeira linha que não seja vazia
-        const lines = allText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        name = lines[0] || '';
+        const $productText = $container.find('.product-text');
+        if ($productText.length > 0) {
+          name = $productText.find('strong').text().trim() ||
+                 $productText.find('h2').text().trim() ||
+                 $productText.text().trim().split('\n')[0];
+        }
       }
 
-      // Limpar o nome (remover "Baixar", números extras, etc)
-      name = name.replace(/^Baixar\s*/i, '').trim();
-
-      // Extrair link - procurar link do produto
-      const link = $el.find('a[href*="/produto/"], a[href*=".html"]').first().attr('href') ||
-                  $el.find('a').first().attr('href') || '';
+      // Link - está no <a> com classe "product photo product-item-photo"
+      let link = '';
+      const $linkEl = $container.find('a.product.photo.product-item-photo, a.product-item-photo');
+      if ($linkEl.length > 0) {
+        link = $linkEl.attr('href') || '';
+      }
+      // Se não achou, tentar qualquer link com href para .html
+      if (!link) {
+        const $anyLink = $container.find('a[href*=".html"]').not('[href*="?"]').first();
+        if ($anyLink.length > 0) {
+          link = $anyLink.attr('href') || '';
+        }
+      }
       const fullLink = link ? (link.startsWith('http') ? link : `https://casoca.com.br${link}`) : '';
 
       // Evitar processar o mesmo link múltiplas vezes
-      if (processedLinks.has(fullLink) || !fullLink) {
+      if (processedLinks.has(fullLink)) {
         return;
       }
-      processedLinks.add(fullLink);
+      if (fullLink) processedLinks.add(fullLink);
 
-      // Extrair imagem - múltiplas tentativas
-      const img = $el.find('img').first();
-      const imageUrl = img.attr('src') ||
-                      img.attr('data-src') ||
-                      img.attr('data-lazy-src') ||
-                      img.attr('data-original') || '';
+      // Imagem - está dentro do container
+      let imageUrl = '';
+      const $img = $container.find('img').first();
+      if ($img.length > 0) {
+        imageUrl = $img.attr('src') || $img.attr('data-src') || '';
+      }
 
       // Validar que temos dados mínimos
       if (name && name.length > 0 && name !== 'undefined') {
@@ -203,12 +214,43 @@ async function scrapePage(url, category) {
         products.push({
           name: name.substring(0, 200),
           image_url: imageUrl,
-          link: fullLink,
+          link: fullLink || `https://casoca.com.br/produto/${Date.now()}-${index}`,
           category: category,
           subcategory: subcategory
         });
       }
     });
+
+    // Fallback: tentar com seletor .product caso não encontre nada
+    if (products.length === 0) {
+      $('.product').each((index, element) => {
+        const $el = $(element);
+        const name = $el.find('.product-text strong').text().trim() ||
+                    $el.find('strong').text().trim() ||
+                    $el.text().trim().split('\n')[0];
+
+        const link = $el.find('a[href*=".html"]').not('[href*="?"]').first().attr('href') || '';
+        const fullLink = link ? (link.startsWith('http') ? link : `https://casoca.com.br${link}`) : '';
+
+        if (processedLinks.has(fullLink)) return;
+        if (fullLink) processedLinks.add(fullLink);
+
+        const img = $el.find('img').first();
+        const imageUrl = img.attr('src') || img.attr('data-src') || '';
+
+        if (name && name.length > 0) {
+          const subcategory = inferSubcategory(name, category);
+
+          products.push({
+            name: name.substring(0, 200),
+            image_url: imageUrl,
+            link: fullLink || `https://casoca.com.br/produto/${Date.now()}-${index}`,
+            category: category,
+            subcategory: subcategory
+          });
+        }
+      });
+    }
 
     // Procurar link para próxima página
     let nextPageUrl = null;
