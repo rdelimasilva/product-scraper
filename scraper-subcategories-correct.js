@@ -113,31 +113,33 @@ async function scrapeWithRealFilters() {
       // Tentar abrir dropdown/menu de filtros
       const filterAttempts = [
         () => page.evaluate(() => {
-          // Tentar clicar em "Móveis por:" ou similar
-          const links = Array.from(document.querySelectorAll('a'));
-          const filterLink = links.find(a => a.textContent.includes('por:'));
-          if (filterLink) {
-            filterLink.click();
+          // Primeiro, tentar expandir "Filtrar Produtos" se estiver fechado
+          const filterBlock = document.querySelector('.layered-filter-block-container, .block.filter');
+          if (filterBlock && !filterBlock.classList.contains('active')) {
+            filterBlock.click();
+            return true;
+          }
+          // Se já está aberto
+          return document.querySelector('.filter-content') !== null;
+        }),
+        () => page.evaluate(() => {
+          // Tentar clicar no botão "Tipo"
+          const tipoButton = document.querySelector('button.filter-button');
+          if (tipoButton) {
+            tipoButton.click();
             return true;
           }
           return false;
         }),
         () => page.evaluate(() => {
-          // Tentar clicar em botão de filtro
-          const buttons = Array.from(document.querySelectorAll('button'));
-          const filterButton = buttons.find(b => b.textContent.includes('Filtrar') || b.textContent.includes('Filter'));
-          if (filterButton) {
-            filterButton.click();
-            return true;
-          }
-          return false;
-        }),
-        () => page.evaluate(() => {
-          // Tentar abrir menu dropdown
-          const dropdowns = document.querySelectorAll('[class*="dropdown"], [class*="menu"], select');
-          if (dropdowns.length > 0) {
-            dropdowns[0].click();
-            return true;
+          // Tentar expandir "Tipo do Produto"
+          const tipoSection = document.querySelector('.filter-options-item');
+          if (tipoSection) {
+            const title = tipoSection.querySelector('.filter-options-title, .filter-title-text');
+            if (title) {
+              title.click();
+              return true;
+            }
           }
           return false;
         })
@@ -152,41 +154,47 @@ async function scrapeWithRealFilters() {
         }
       }
 
-      // Se conseguiu abrir filtros, tentar encontrar "Tipo"
+      // Se conseguiu abrir filtros, procurar checkboxes diretamente
       if (filterOpened) {
-        const tipoClicked = await page.evaluate(() => {
-          const elements = Array.from(document.querySelectorAll('a, li, span'));
-          const tipoElement = elements.find(el =>
-            el.textContent?.trim() === 'Tipo' ||
-            el.textContent?.trim() === 'tipo'
-          );
-          if (tipoElement) {
-            tipoElement.click();
-            return true;
-          }
-          return false;
-        });
+        console.log('🔍 Procurando opções de filtro...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        if (tipoClicked) {
-          console.log('✅ Clicou em "Tipo"');
-          await new Promise(resolve => setTimeout(resolve, 3000));
+        // Verificar se apareceram checkboxes ou opções
+        const filterOptions = await page.evaluate(() => {
+          // Procurar checkboxes em várias possíveis estruturas
+          const checkboxes = document.querySelectorAll('input[type="checkbox"], .filter-option input, .filter-content input');
+          const options = [];
 
-          // Verificar se apareceram checkboxes ou opções
-          const filterOptions = await page.evaluate(() => {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            const options = [];
+          checkboxes.forEach(cb => {
+            const label = cb.parentElement?.textContent?.trim() ||
+                         cb.nextElementSibling?.textContent?.trim() ||
+                         cb.closest('label')?.textContent?.trim() ||
+                         cb.closest('.filter-option')?.textContent?.trim();
 
-            checkboxes.forEach(cb => {
-              const label = cb.parentElement?.textContent?.trim() ||
-                           cb.nextElementSibling?.textContent?.trim() ||
-                           cb.closest('label')?.textContent?.trim();
-              if (label) {
-                options.push(label.replace(/[^a-zA-ZÀ-ú\s]/g, '').trim());
+            if (label && label.length > 0 && label.length < 50) {
+              const cleanLabel = label.replace(/[^a-zA-ZÀ-ú\s]/g, '').trim();
+              if (cleanLabel && !options.includes(cleanLabel)) {
+                options.push(cleanLabel);
+              }
+            }
+          });
+
+          // Se não encontrou checkboxes, procurar links ou itens de lista
+          if (options.length === 0) {
+            const filterItems = document.querySelectorAll('.filter-option a, .filter-list li, .filter-item');
+            filterItems.forEach(item => {
+              const text = item.textContent?.trim();
+              if (text && text.length > 0 && text.length < 50) {
+                const cleanText = text.replace(/[^a-zA-ZÀ-ú\s]/g, '').trim();
+                if (cleanText && !options.includes(cleanText)) {
+                  options.push(cleanText);
+                }
               }
             });
+          }
 
-            return options;
-          });
+          return options;
+        });
 
           if (filterOptions.length > 0) {
             console.log('📋 Subcategorias encontradas:', filterOptions.join(', '));
