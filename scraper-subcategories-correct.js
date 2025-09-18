@@ -196,8 +196,8 @@ async function scrapeWithRealFilters() {
           return options;
         });
 
-          if (filterOptions.length > 0) {
-            console.log('📋 Subcategorias encontradas:', filterOptions.join(', '));
+        if (filterOptions.length > 0) {
+          console.log('📋 Subcategorias encontradas:', filterOptions.join(', '));
 
             // Para cada subcategoria encontrada, aplicar filtro e extrair produtos
             for (const subcategory of filterOptions.slice(0, 3)) { // Limitar para teste
@@ -281,7 +281,6 @@ async function scrapeWithRealFilters() {
               await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
-        }
       }
 
       // Fallback: Se não conseguiu filtros, usar subcategorias conhecidas
