@@ -91,7 +91,8 @@ async function scrapeCasoca() {
               items.push({
                 name: name.substring(0, 200),
                 image_url: imageUrl,
-                product_url: link || `https://casoca.com.br/produto/${Date.now()}`
+                link: link || `https://casoca.com.br/produto/${Date.now()}`,
+                category: categoryName
               });
             }
           } catch (error) {
@@ -112,12 +113,11 @@ async function scrapeCasoca() {
           try {
             const { data, error } = await supabase
               .from('products')
-              .upsert({
+              .insert({
                 name: product.name,
                 image_url: product.image_url,
-                product_url: product.product_url
-              }, {
-                onConflict: 'product_url'
+                link: product.link,
+                category: product.category
               });
 
             if (error) {
