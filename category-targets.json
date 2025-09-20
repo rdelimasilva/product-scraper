@@ -1,0 +1,67 @@
+{
+  "categories": {
+    "Móveis": {
+      "expectedTotal": 9600,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/moveis.html"
+    },
+    "Iluminação": {
+      "expectedTotal": 3072,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/iluminacao.html"
+    },
+    "Acessórios de Decoração": {
+      "expectedTotal": 3744,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/acessorios-de-decoracao.html"
+    },
+    "Comercial": {
+      "expectedTotal": 600,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/comercial.html"
+    },
+    "Escritório": {
+      "expectedTotal": 1272,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/escritorio.html"
+    },
+    "Revestimentos": {
+      "expectedTotal": 3336,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/revestimentos.html"
+    },
+    "Louças e Metais": {
+      "expectedTotal": 1008,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/loucas-e-metais.html"
+    },
+    "Eletros": {
+      "expectedTotal": 456,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/eletros.html"
+    },
+    "Vegetação": {
+      "expectedTotal": 72,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/vegetacao.html"
+    },
+    "Portas e Janelas": {
+      "expectedTotal": 264,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/portas-e-janelas.html"
+    },
+    "Construção": {
+      "expectedTotal": 192,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/construcao.html"
+    },
+    "Quarto Infantil": {
+      "expectedTotal": 192,
+      "threshold": 0.95,
+      "url": "https://casoca.com.br/quarto-infantil.html"
+    }
+  },
+  "totalExpected": 23808,
+  "lastUpdated": "2025-09-20",
+  "notes": "Totais reais obtidos do site em 20/09/2025"
+}

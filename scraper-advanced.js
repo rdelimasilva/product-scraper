@@ -128,6 +128,22 @@ class CheckpointManager {
 // VERIFICAÇÃO INTELIGENTE
 // ============================================
 class CategoryChecker {
+  constructor() {
+    // Carregar totais esperados
+    try {
+      const targetsPath = path.join(__dirname, 'category-targets.json');
+      if (fs.existsSync(targetsPath)) {
+        const data = JSON.parse(fs.readFileSync(targetsPath, 'utf8'));
+        this.targets = data.categories;
+        log('📊 Totais de categorias carregados');
+      } else {
+        this.targets = {};
+      }
+    } catch (error) {
+      this.targets = {};
+    }
+  }
+
   async checkCategoryStatus(categoryName) {
     try {
       // Contar produtos existentes da categoria
@@ -138,12 +154,39 @@ class CategoryChecker {
 
       if (error) throw error;
 
-      log(`📊 ${categoryName}: ${count || 0} produtos no banco`);
+      const existingCount = count || 0;
+      const target = this.targets[categoryName];
+
+      let shouldSkip = false;
+      let completeness = 0;
+
+      if (target && target.expectedTotal) {
+        // Calcular porcentagem de completude
+        completeness = existingCount / target.expectedTotal;
+        const threshold = target.threshold || 0.95; // 95% por padrão
+
+        shouldSkip = completeness >= threshold;
+
+        log(`📊 ${categoryName}: ${existingCount}/${target.expectedTotal} produtos (${(completeness * 100).toFixed(1)}%)`);
+
+        if (shouldSkip) {
+          log(`  ✅ Categoria ${(completeness * 100).toFixed(1)}% completa - pulando`);
+        } else {
+          const missing = target.expectedTotal - existingCount;
+          log(`  ⚠️ Faltam aproximadamente ${missing} produtos`);
+        }
+      } else {
+        // Fallback para lógica antiga se não tiver target
+        log(`📊 ${categoryName}: ${existingCount} produtos no banco`);
+        shouldSkip = existingCount >= CONFIG.MIN_PRODUCTS_TO_SKIP;
+      }
 
       return {
-        existingCount: count || 0,
-        shouldSkip: count >= CONFIG.MIN_PRODUCTS_TO_SKIP,
-        isEmpty: count === 0
+        existingCount,
+        expectedTotal: target?.expectedTotal || 0,
+        completeness,
+        shouldSkip,
+        isEmpty: existingCount === 0
       };
     } catch (error) {
       log(`❌ Erro ao verificar categoria: ${error.message}`);
