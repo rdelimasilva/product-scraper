@@ -527,7 +527,10 @@ async function main() {
     { name: 'Cortinas e Persianas', url: 'https://casoca.com.br/acessorios-de-decoracao/cortinas-e-persianas.html' },
     { name: 'Vegetação', url: 'https://casoca.com.br/vegetacao.html' },
     { name: 'Papéis de Parede', url: 'https://casoca.com.br/revestimentos/revestimentos-de-parede/papeis-de-parede.html' },
-    { name: 'Tapetes', url: 'https://casoca.com.br/acessorios-de-decoracao/tapetes.html' }
+    { name: 'Tapetes', url: 'https://casoca.com.br/acessorios-de-decoracao/tapetes.html' },
+    { name: 'Revestimentos', url: 'https://casoca.com.br/revestimentos.html' },
+    { name: 'Comercial', url: 'https://casoca.com.br/comercial.html' },
+    { name: 'Construção', url: 'https://casoca.com.br/construcao.html' }
   ];
 
   // Filtrar categorias não completadas

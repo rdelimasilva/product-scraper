@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'casoca-scraper',
-    script: './production-scraper.js',
+    script: './src/scrapers/production/production-scraper.js',
     instances: 1,
     exec_mode: 'fork',
 
