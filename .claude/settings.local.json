@@ -10,7 +10,8 @@
       "Bash(npm install:*)",
       "Bash(git push:*)",
       "Bash(ssh:*)",
-      "WebFetch(domain:casoca.com.br)"
+      "WebFetch(domain:casoca.com.br)",
+      "Bash(pm2 list:*)"
     ],
     "deny": [],
     "ask": []

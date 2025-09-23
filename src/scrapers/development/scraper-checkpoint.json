@@ -1,0 +1,78 @@
+{
+  "categories": {
+    "Iluminação": {
+      "lastPage": 0,
+      "totalProducts": 3056,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.714Z"
+    },
+    "Móveis": {
+      "lastPage": 0,
+      "totalProducts": 7363,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.718Z"
+    },
+    "Louças e Metais": {
+      "lastPage": 0,
+      "totalProducts": 992,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.833Z"
+    },
+    "Acessórios de Decoração": {
+      "lastPage": 0,
+      "totalProducts": 2934,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.880Z"
+    },
+    "Eletros": {
+      "lastPage": 0,
+      "totalProducts": 446,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.921Z"
+    },
+    "Portas e Janelas": {
+      "lastPage": 0,
+      "totalProducts": 224,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:13.984Z"
+    },
+    "Escritório": {
+      "lastPage": 0,
+      "totalProducts": 814,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.008Z"
+    },
+    "Quarto Infantil": {
+      "lastPage": 0,
+      "totalProducts": 497,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.094Z"
+    },
+    "Móveis para Área Externa": {
+      "lastPage": 0,
+      "totalProducts": 590,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.105Z"
+    },
+    "Cortinas e Persianas": {
+      "lastPage": 0,
+      "totalProducts": 116,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.180Z"
+    },
+    "Papéis de Parede": {
+      "lastPage": 0,
+      "totalProducts": 496,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.717Z"
+    },
+    "Tapetes": {
+      "lastPage": 0,
+      "totalProducts": 222,
+      "completed": true,
+      "lastRun": "2025-09-23T19:09:14.846Z"
+    }
+  },
+  "startedAt": "2025-09-23T19:09:13.005Z",
+  "lastUpdate": "2025-09-23T19:09:14.846Z"
+}
