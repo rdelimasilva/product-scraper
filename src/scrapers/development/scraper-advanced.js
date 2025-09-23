@@ -345,13 +345,15 @@ async function saveProducts(products, categoryName) {
     product.subcategory = inferSubcategory(product.name, categoryName);
 
     try {
+      // Verificar se já existe - usa limit(1) em vez de single()
       const { data: existing } = await supabase
         .from('products')
         .select('id')
         .eq('link', product.link)
-        .single();
+        .limit(1);
 
-      if (existing) {
+      if (existing && existing.length > 0) {
+        // Produto já existe - atualizar
         await supabase
           .from('products')
           .update({
@@ -361,17 +363,26 @@ async function saveProducts(products, categoryName) {
             subcategory: product.subcategory,
             updated_at: new Date().toISOString()
           })
-          .eq('link', product.link);
+          .eq('id', existing[0].id);
       } else {
+        // Produto novo - inserir
         const { error } = await supabase
           .from('products')
           .insert(product);
 
-        if (!error) saved++;
-        else errors++;
+        if (!error) {
+          saved++;
+        } else {
+          // Se erro for duplicata, ignorar
+          if (error.code !== '23505') {
+            errors++;
+            log(`    ❌ Erro ao salvar: ${error.message}`);
+          }
+        }
       }
     } catch (err) {
       errors++;
+      log(`    ❌ Erro geral: ${err.message}`);
     }
   }
 
